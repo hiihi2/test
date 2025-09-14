@@ -16,28 +16,28 @@ for DISK in $NVME_DISKS; do
     for PART in $PARTITIONS; do
         if mount | grep -q "^$PART "; then
             echo "Unmounting $PART..."
-            sudo umount $PART || true
+             umount $PART || true
         fi
     done
 
     # Turn off swap on disk
     if grep -q "$DISK" /proc/swaps; then
         echo "Turning off swap on $DISK..."
-        sudo swapoff $DISK || true
+         swapoff $DISK || true
     fi
 
     # Deactivate LVM volumes if present
-    if sudo pvs | grep -q "$DISK"; then
-        LVM_VOLS=$(sudo lvs --noheadings -o lv_name,vg_name | awk '{print $2"/"$1}')
+    if  pvs | grep -q "$DISK"; then
+        LVM_VOLS=$( lvs --noheadings -o lv_name,vg_name | awk '{print $2"/"$1}')
         for LV in $LVM_VOLS; do
             echo "Deactivating LVM volume $LV..."
-            sudo lvchange -an $LV || true
+             lvchange -an $LV || true
         done
     fi
 
     # Perform secure erase
     echo "Running secure erase on $DISK..."
-    sudo nvme format $DISK --ses=1 --force
+     nvme format $DISK --ses=1 --force
 
     echo "$DISK erased."
 done
